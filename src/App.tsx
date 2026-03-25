@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
-import { motion } from 'motion/react';
+import React, { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -13,19 +13,11 @@ import {
   PhoneCall, 
   Info, 
   ChevronRight,
-  PieChart as PieChartIcon,
+  ChevronDown,
   ArrowUpRight,
   ArrowDownRight,
   Calendar
 } from 'lucide-react';
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  Tooltip,
-  Legend
-} from 'recharts';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { FINANCIAL_DATA } from './constants';
@@ -34,8 +26,6 @@ import { FinancialItem } from './types';
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 const StatCard = ({ title, amount, icon: Icon, type }: { 
   title: string; 
@@ -64,29 +54,29 @@ const StatCard = ({ title, amount, icon: Icon, type }: {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "p-3 md:p-6 rounded-xl md:rounded-2xl border bg-white shadow-sm flex flex-col justify-between h-full",
+        "p-3 rounded-xl border bg-white shadow-sm flex flex-col justify-between h-full",
         borderClass
       )}
     >
-      <div className="flex items-center justify-between mb-2 md:mb-4">
-        <span className="text-[10px] md:text-sm font-medium text-gray-500 truncate mr-1">{title}</span>
-        <div className={cn("p-1.5 md:p-2 rounded-lg shrink-0", colorClass)}>
-          <Icon size={14} className="md:w-5 md:h-5" />
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-medium text-gray-500 truncate mr-1">{title}</span>
+        <div className={cn("p-1.5 rounded-lg shrink-0", colorClass)}>
+          <Icon size={14} />
         </div>
       </div>
       <div>
-        <div className="flex items-baseline gap-0.5 md:gap-1 flex-wrap">
-          <span className="text-[10px] md:text-sm font-semibold text-gray-400">¥</span>
+        <div className="flex items-baseline gap-0.5 flex-wrap">
+          <span className="text-[10px] font-semibold text-gray-400">¥</span>
           <span className={cn(
-            "text-sm md:text-3xl font-bold tracking-tight break-all",
+            "text-sm font-bold tracking-tight break-all",
             type === 'balance' ? (isNegative ? 'text-red-600' : 'text-emerald-600') : 'text-gray-900'
           )}>
             {amount.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
           </span>
         </div>
-        <div className="mt-1 md:mt-2 flex items-center gap-1 text-[8px] md:text-xs text-gray-400">
-          {type === 'income' && <ArrowUpRight size={10} className="text-blue-500 md:w-3 md:h-3" />}
-          {type === 'expense' && <ArrowDownRight size={10} className="text-amber-500 md:w-3 md:h-3" />}
+        <div className="mt-1 flex items-center gap-1 text-[8px] text-gray-400">
+          {type === 'income' && <ArrowUpRight size={10} className="text-blue-500" />}
+          {type === 'expense' && <ArrowDownRight size={10} className="text-amber-500" />}
           <span className="truncate">本期累计</span>
         </div>
       </div>
@@ -131,20 +121,15 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ item, depth = 0 }) => {
 };
 
 export default function App() {
-  const chartData = useMemo(() => {
-    return FINANCIAL_DATA.expenseCategories
-      .filter(cat => cat.amount > 0)
-      .map(cat => ({
-        name: cat.name,
-        value: cat.amount
-      }));
-  }, []);
+  const [isIncomeExpanded, setIsIncomeExpanded] = useState(false);
+  const [isExpenseExpanded, setIsExpenseExpanded] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-gray-900 font-sans pb-12">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-100 flex justify-center">
+      <div className="w-full max-w-[480px] bg-[#F8FAFC] min-h-screen shadow-2xl relative">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2 rounded-xl shadow-blue-200 shadow-lg">
               <ShieldCheck className="text-white" size={24} />
@@ -161,14 +146,14 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 mt-8 space-y-8">
+      <main className="px-4 py-8 space-y-8 pb-12">
         {/* Overview Section */}
         <section>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1.5 h-6 bg-blue-600 rounded-full" />
             <h2 className="text-xl font-bold text-gray-800">财务总览</h2>
           </div>
-          <div className="grid grid-cols-3 gap-2 md:gap-4">
+          <div className="grid grid-cols-3 gap-2">
             <StatCard 
               title="本期总收入" 
               amount={FINANCIAL_DATA.totalIncome} 
@@ -190,83 +175,96 @@ export default function App() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* Income Details */}
           <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-              <h2 className="text-xl font-bold text-gray-800">收入汇总</h2>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              {FINANCIAL_DATA.incomeCategories.map((cat, idx) => (
-                <CategoryItem key={idx} item={cat} />
-              ))}
-              <div className="bg-emerald-50 p-4 flex justify-between items-center border-t border-emerald-100">
-                <span className="font-bold text-emerald-800">总计收入</span>
-                <span className="font-mono font-bold text-emerald-800 text-lg">
-                  ¥{FINANCIAL_DATA.totalIncome.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-                </span>
+            <button 
+              onClick={() => setIsIncomeExpanded(!isIncomeExpanded)}
+              className="flex items-center justify-between w-full group"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                <h2 className="text-xl font-bold text-gray-800">收入汇总</h2>
               </div>
-            </div>
+              <div className={cn(
+                "p-1 rounded-lg transition-all duration-300",
+                isIncomeExpanded ? "bg-emerald-100 text-emerald-600 rotate-180" : "bg-gray-100 text-gray-400 group-hover:bg-gray-200"
+              )}>
+                <ChevronDown size={20} />
+              </div>
+            </button>
+            
+            <AnimatePresence>
+              {isIncomeExpanded && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    {FINANCIAL_DATA.incomeCategories.map((cat, idx) => (
+                      <CategoryItem key={idx} item={cat} />
+                    ))}
+                    <div className="bg-emerald-50 p-4 flex justify-between items-center border-t border-emerald-100">
+                      <span className="font-bold text-emerald-800">总计收入</span>
+                      <span className="font-mono font-bold text-emerald-800 text-lg">
+                        ¥{FINANCIAL_DATA.totalIncome.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </section>
 
           {/* Expense Details */}
           <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-6 bg-amber-500 rounded-full" />
-              <h2 className="text-xl font-bold text-gray-800">支出汇总</h2>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              {FINANCIAL_DATA.expenseCategories.map((cat, idx) => (
-                <CategoryItem key={idx} item={cat} />
-              ))}
-              <div className="bg-amber-50 p-4 flex justify-between items-center border-t border-amber-100">
-                <span className="font-bold text-amber-800">总计支出</span>
-                <span className="font-mono font-bold text-amber-800 text-lg">
-                  ¥{FINANCIAL_DATA.totalExpense.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-                </span>
+            <button 
+              onClick={() => setIsExpenseExpanded(!isExpenseExpanded)}
+              className="flex items-center justify-between w-full group"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-6 bg-amber-500 rounded-full" />
+                <h2 className="text-xl font-bold text-gray-800">支出汇总</h2>
               </div>
-            </div>
+              <div className={cn(
+                "p-1 rounded-lg transition-all duration-300",
+                isExpenseExpanded ? "bg-amber-100 text-amber-600 rotate-180" : "bg-gray-100 text-gray-400 group-hover:bg-gray-200"
+              )}>
+                <ChevronDown size={20} />
+              </div>
+            </button>
+            
+            <AnimatePresence>
+              {isExpenseExpanded && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    {FINANCIAL_DATA.expenseCategories.map((cat, idx) => (
+                      <CategoryItem key={idx} item={cat} />
+                    ))}
+                    <div className="bg-amber-50 p-4 flex justify-between items-center border-t border-amber-100">
+                      <span className="font-bold text-amber-800">总计支出</span>
+                      <span className="font-mono font-bold text-amber-800 text-lg">
+                        ¥{FINANCIAL_DATA.totalExpense.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </section>
         </div>
 
-        {/* Visual Analysis */}
-        {chartData.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-              <h2 className="text-xl font-bold text-gray-800">支出构成分析</h2>
-            </div>
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={80}
-                    outerRadius={120}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => `¥${value.toLocaleString()}`}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-        )}
-
         {/* Explanations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <motion.div 
             whileHover={{ y: -5 }}
             className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-blue-100"
@@ -321,10 +319,11 @@ export default function App() {
             Transparency • Trust • Community
           </p>
           <p className="text-[10px] text-gray-300">
-            © 2026 城建小区业主委员会 & 物业管理中心 版权所有
+            为您服务小钥匙
           </p>
         </footer>
       </main>
     </div>
-  );
+  </div>
+);
 }
