@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Motion, Presence } from '@motionone/vue';
-import { ChevronRight, ChevronDown } from 'lucide-vue-next';
+import { ChevronRight, ChevronDown } from 'lucide-vue';
 import type { FinancialCategory } from '../types';
 
 const props = defineProps<{
@@ -29,8 +28,7 @@ const toggleExpand = () => {
       @click="toggleExpand"
       :class="[
         'w-full flex items-center justify-between p-4 transition-all duration-300 group',
-        isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/50',
-        depth && depth > 0 ? 'pl-' + (depth * 4 + 4) : ''
+        isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/50'
       ]"
       :style="{ paddingLeft: depth ? `${depth * 1.5 + 1}rem` : '1rem' }"
     >
@@ -64,22 +62,26 @@ const toggleExpand = () => {
       </div>
     </button>
 
-    <Presence>
-      <Motion 
-        v-if="isExpanded && item.children && item.children.length > 0"
-        :initial="{ height: 0, opacity: 0 }"
-        :animate="{ height: 'auto', opacity: 1 }"
-        :exit="{ height: 0, opacity: 0 }"
-        :transition="{ duration: 0.3, easing: 'ease-in-out' }"
-        class="overflow-hidden bg-white/50"
-      >
+    <transition name="expand">
+      <div v-if="isExpanded && item.children && item.children.length > 0" class="overflow-hidden bg-white/50">
         <CategoryItem 
           v-for="(child, idx) in item.children" 
           :key="idx" 
           :item="child" 
           :depth="currentDepth + 1" 
         />
-      </Motion>
-    </Presence>
+      </div>
+    </transition>
   </div>
 </template>
+
+<style scoped>
+.expand-enter-active, .expand-leave-active {
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  max-height: 1000px;
+}
+.expand-enter, .expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+</style>

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Motion } from '@motionone/vue';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { ArrowUpRight, ArrowDownRight } from 'lucide-vue-next';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-vue';
 
 const props = defineProps<{
   title: string;
@@ -34,11 +33,9 @@ const borderClass = computed(() => {
 </script>
 
 <template>
-  <Motion 
-    :initial="{ opacity: 0, y: 20 }"
-    :animate="{ opacity: 1, y: 0 }"
+  <div 
     :class="cn(
-      'p-3 rounded-xl border bg-white shadow-sm flex flex-col justify-between h-full',
+      'p-3 rounded-xl border bg-white shadow-sm flex flex-col justify-between h-full transition-all duration-500',
       borderClass
     )"
   >
@@ -64,5 +61,5 @@ const borderClass = computed(() => {
         <span class="truncate">本期累计</span>
       </div>
     </div>
-  </Motion>
+  </div>
 </template>

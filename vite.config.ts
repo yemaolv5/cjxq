@@ -1,5 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
-import vue from '@vitejs/plugin-vue';
+import vue from '@vitejs/plugin-vue2';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 

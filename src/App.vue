@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Motion, Presence } from '@motionone/vue';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -11,7 +10,7 @@ import {
   ChevronRight,
   ChevronDown,
   Calendar
-} from 'lucide-vue-next';
+} from 'lucide-vue';
 import { FINANCIAL_DATA } from './constants';
 import StatCard from './components/StatCard.vue';
 import CategoryItem from './components/CategoryItem.vue';
@@ -94,15 +93,8 @@ const formatCurrency = (amount: number) => {
               </div>
             </button>
             
-            <Presence>
-              <Motion 
-                v-if="isIncomeExpanded"
-                :initial="{ height: 0, opacity: 0 }"
-                :animate="{ height: 'auto', opacity: 1 }"
-                :exit="{ height: 0, opacity: 0 }"
-                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
-                class="overflow-hidden"
-              >
+            <transition name="expand">
+              <div v-if="isIncomeExpanded" class="overflow-hidden">
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                   <CategoryItem v-for="(cat, idx) in FINANCIAL_DATA.incomeCategories" :key="idx" :item="cat" />
                   <div class="bg-emerald-50 p-4 flex justify-between items-center border-t border-emerald-100">
@@ -112,8 +104,8 @@ const formatCurrency = (amount: number) => {
                     </span>
                   </div>
                 </div>
-              </Motion>
-            </Presence>
+              </div>
+            </transition>
           </section>
 
           <!-- Expense Details -->
@@ -134,15 +126,8 @@ const formatCurrency = (amount: number) => {
               </div>
             </button>
             
-            <Presence>
-              <Motion 
-                v-if="isExpenseExpanded"
-                :initial="{ height: 0, opacity: 0 }"
-                :animate="{ height: 'auto', opacity: 1 }"
-                :exit="{ height: 0, opacity: 0 }"
-                :transition="{ duration: 0.3, easing: 'ease-in-out' }"
-                class="overflow-hidden"
-              >
+            <transition name="expand">
+              <div v-if="isExpenseExpanded" class="overflow-hidden">
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                   <CategoryItem v-for="(cat, idx) in FINANCIAL_DATA.expenseCategories" :key="idx" :item="cat" />
                   <div class="bg-amber-50 p-4 flex justify-between items-center border-t border-amber-100">
@@ -152,17 +137,14 @@ const formatCurrency = (amount: number) => {
                     </span>
                   </div>
                 </div>
-              </Motion>
-            </Presence>
+              </div>
+            </transition>
           </section>
         </div>
 
         <!-- Explanations -->
         <div class="grid grid-cols-1 gap-6">
-          <Motion 
-            :whileHover="{ y: -5 }"
-            class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-blue-100"
-          >
+          <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-3xl text-white shadow-xl shadow-blue-100 hover:-translate-y-1 transition-transform duration-300">
             <div class="flex items-center gap-3 mb-4">
               <div class="p-2 bg-white/20 rounded-lg backdrop-blur-md">
                 <ShieldCheck :size="24" />
@@ -172,12 +154,9 @@ const formatCurrency = (amount: number) => {
             <p class="text-sm leading-relaxed text-blue-50 opacity-90">
               本小区严格执行信托制物业管理，所有收支实行专户管理、专款专用、逐笔公示，物业费与公共收益归全体业主所有，按照业主共同决定使用。
             </p>
-          </Motion>
+          </div>
 
-          <Motion 
-            :whileHover="{ y: -5 }"
-            class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm"
-          >
+          <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:-translate-y-1 transition-transform duration-300">
             <div class="flex items-center gap-3 mb-4">
               <div class="p-2 bg-gray-100 rounded-lg text-gray-600">
                 <Info :size="24" />
@@ -197,14 +176,11 @@ const formatCurrency = (amount: number) => {
                   <p class="text-lg font-bold text-gray-800">0471-666888</p>
                 </div>
               </div>
-              <Motion 
-                :whileTap="{ scale: 0.95 }"
-                class="bg-white text-gray-400 p-2 rounded-xl border border-gray-200 hover:text-blue-600 hover:border-blue-200 transition-colors"
-              >
+              <button class="bg-white text-gray-400 p-2 rounded-xl border border-gray-200 hover:text-blue-600 hover:border-blue-200 transition-colors active:scale-95">
                 <ChevronRight :size="20" />
-              </Motion>
+              </button>
             </div>
-          </Motion>
+          </div>
         </div>
 
         <!-- Footer info -->
@@ -220,3 +196,14 @@ const formatCurrency = (amount: number) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.expand-enter-active, .expand-leave-active {
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  max-height: 2000px;
+}
+.expand-enter, .expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+</style>
